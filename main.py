@@ -1,4 +1,4 @@
-# 📦 Улучшенный main.py с логотипом, автоответами, профилем, справкой и обратной связью
+# 📦 Обновлённый main.py: /помощь фикс, кнопка, аватар готов
 import telebot
 from telebot import types
 import json
@@ -108,8 +108,9 @@ def profile(message):
     )
     bot.send_message(message.chat.id, text, parse_mode="HTML")
 
-# /помощь
+# /помощь и кнопка 📘
 @bot.message_handler(commands=['помощь'])
+@bot.message_handler(func=lambda msg: msg.text == "📘 Помощь")
 def help_command(message):
     help_text = (
         "📘 <b>Справка по командам:</b>\n\n"
