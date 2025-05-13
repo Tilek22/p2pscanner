@@ -1,9 +1,10 @@
-
-# 📦 Новый улучшенный main.py с оформлением, эмодзи и кнопками
+# 📦 Улучшенный main.py с логотипом, автоответами, профилем, справкой и обратной связью
 import telebot
 from telebot import types
 import json
 from datetime import datetime, timedelta
+import threading
+import time
 
 API_TOKEN = '8065004819:AAGCuaB5ImkIPHqQKp4alsX4ue9GFvpqt-4'
 bot = telebot.TeleBot(API_TOKEN)
@@ -21,38 +22,43 @@ def save_vip():
 
 # Главное меню с кнопками
 main_menu = types.ReplyKeyboardMarkup(resize_keyboard=True)
-main_menu.add("📊 Курсы", "🔁 Связки")
-main_menu.add("💎 Подписка", "👑 VIP")
+main_menu.add("🔁 Связки", "👑 VIP")
+main_menu.add("💎 Подписка", "📘 Помощь")
 
 # /start
 @bot.message_handler(commands=['start'])
 def start(message):
     name = message.from_user.first_name or "друг"
-    bot.send_message(message.chat.id, f"👋 Привет, {name}!")
-    bot.send_message(message.chat.id,
-"Добро пожаловать в P2P SCANNER BOT 🔍\n\nВыбирай нужную функцию снизу:", reply_markup=main_menu)
-
-# Кнопка "📊 Курсы"
-@bot.message_handler(func=lambda msg: msg.text == "📊 Курсы")
-def kurs(message):
-    bot.send_message(message.chat.id, "💱 Актуальные курсы:\n\nUSDT/TON/TRX/BTC\n(данные обновляются...)")
+    logo = (
+        "🔮 <b>P2P SCANNER BOT</b> 🔮\n"
+        "<i>🔗 Автоматический поиск связок\n💸 Максимум прибыли — минимум риска</i>\n"
+        "\nДобро пожаловать, <b>{}</b>!".format(name)
+    )
+    bot.send_message(message.chat.id, logo, reply_markup=main_menu, parse_mode="HTML")
 
 # Кнопка "🔁 Связки"
 @bot.message_handler(func=lambda msg: msg.text == "🔁 Связки")
+@bot.message_handler(commands=['связки'])
 def svyazki(message):
-    text = "🔗 Топ 3 связки на сейчас:\n\n"
+    text = "<b>🔗 Топ 3 связки на сейчас:</b>\n\n"
     text += "1️⃣ TON\n🔻 OKX → 1.20$\n🔺 Binance → 1.28$\n💰 Прибыль: +6.7%\n\n"
     text += "2️⃣ TRX\n🔻 Bybit → 0.267$\n🔺 OKX → 0.278$\n💰 Прибыль: +4.1%\n\n"
-    text += "3️⃣ SHIB\n🔻 Bybit → 0.0000091$\n🔺 Binance → 0.0000097$\n💰 Прибыль: +6.6%"
-    bot.send_message(message.chat.id, text)
+    text += "3️⃣ SHIB\n🔻 Bybit → 0.0000091$\n🔺 Binance → 0.0000097$\n💰 Прибыль: +6.6%\n\n💬 Поддержка: @La_Vistaa"
+    bot.send_message(message.chat.id, text, parse_mode="HTML")
 
 # Кнопка "💎 Подписка"
 @bot.message_handler(func=lambda msg: msg.text == "💎 Подписка")
 @bot.message_handler(commands=['подписка'])
 def subs(message):
-    with open("subscription.txt", "r", encoding="utf-8") as f:
-        sub_text = f.read()
-    bot.send_message(message.chat.id, sub_text)
+    sub_text = (
+        "💎 <b>VIP ПОДПИСКА НА P2P СКАНЕР</b>:\n\n"
+        "🔹 1 день — 500 KGS\n🔹 7 дней — 2 500 KGS\n🔹 30 дней — 7 500 KGS\n\n"
+        "🔄 <i>Что ты получишь:</i>\n"
+        "✅ Лучшие P2P-связки\n✅ Обновления каждые 60 секунд\n✅ TRC20, TON, BTC, USDT, более 10 бирж\n\n"
+        "💳 <b>Оплата на карту:</b>\nVISA: <code>4021 8300 5087 1042</code>\nНа имя: А.Т\n\n"
+        "📩 После оплаты отправьте скриншот или введите /активировать\n💬 Поддержка: @La_Vistaa"
+    )
+    bot.send_message(message.chat.id, sub_text, parse_mode="HTML")
 
 # Кнопка "👑 VIP"
 @bot.message_handler(func=lambda msg: msg.text == "👑 VIP")
@@ -62,10 +68,11 @@ def vip(message):
     today = datetime.now().strftime("%Y-%m-%d")
     if uid in vip_users and vip_users[uid] >= today:
         bot.send_message(message.chat.id,
-            "👑 VIP-связки:\n\nTON: OKX → 1.20$ → Binance → 1.28$ (+6.7%)\nTRX: Bybit → 0.267$ → OKX → 0.278$ (+4.1%)")
+            "👑 <b>VIP-связки:</b>\n\nTON: OKX → 1.20$ → Binance → 1.28$ (+6.7%)\nTRX: Bybit → 0.267$ → OKX → 0.278$ (+4.1%)\n\n💬 Поддержка: @La_Vistaa",
+            parse_mode="HTML")
     else:
         bot.send_message(message.chat.id,
-            "🔒 У вас нет активной подписки. Введите /подписка, чтобы оформить доступ.")
+            "🔒 У вас нет активной подписки. Введите /подписка, чтобы оформить доступ.", parse_mode="HTML")
 
 # /активировать
 @bot.message_handler(commands=['активировать'])
@@ -80,8 +87,54 @@ def process_activation(message):
         until = (datetime.now() + timedelta(days=days[code])).strftime("%Y-%m-%d")
         vip_users[str(message.chat.id)] = until
         save_vip()
-        bot.send_message(message.chat.id, f"✅ Подписка активирована до {until}")
+        bot.send_message(message.chat.id,
+            f"🎉 <b>Поздравляем!</b>\nВы активировали VIP на {days[code]} дней до <code>{until}</code>\n\nВведите /vip чтобы начать!",
+            parse_mode="HTML")
     else:
         bot.send_message(message.chat.id, "❌ Неверный код. Попробуйте снова.")
+
+# /мой_профиль
+@bot.message_handler(commands=['мой_профиль'])
+def profile(message):
+    uid = str(message.chat.id)
+    user = message.from_user
+    until = vip_users.get(uid, "нет")
+    status = "✅ Активен до " + until if until != "нет" and until >= datetime.now().strftime("%Y-%m-%d") else "❌ Нет подписки"
+    text = (
+        f"👤 <b>Ваш профиль:</b>\n"
+        f"Имя: {user.first_name}\n"
+        f"ID: <code>{uid}</code>\n"
+        f"Статус: {status}"
+    )
+    bot.send_message(message.chat.id, text, parse_mode="HTML")
+
+# /помощь
+@bot.message_handler(commands=['помощь'])
+def help_command(message):
+    help_text = (
+        "📘 <b>Справка по командам:</b>\n\n"
+        "/start — запуск бота\n"
+        "/связки — 🔁 Топ выгодных связок\n"
+        "/vip — 👑 VIP-связки\n"
+        "/подписка — 💎 Условия и оплата\n"
+        "/активировать — 🔐 Ввести код доступа\n"
+        "/мой_профиль — 👤 Ваш статус и ID\n"
+        "/помощь — 📘 Это меню"
+    )
+    bot.send_message(message.chat.id, help_text, parse_mode="HTML")
+
+# 🕒 Автосообщение VIP каждый день в 10:00 и 18:00
+def daily_vip_broadcast():
+    while True:
+        now = datetime.now()
+        if now.hour in [10, 18] and now.minute == 0:
+            today = now.strftime("%Y-%m-%d")
+            for uid, expiry in vip_users.items():
+                if expiry >= today:
+                    bot.send_message(uid, "🧠 P2P BOT | v1.2\n\n💡 Напоминание: не забудьте проверить свежие связки через /vip")
+            time.sleep(60)
+        time.sleep(30)
+
+threading.Thread(target=daily_vip_broadcast, daemon=True).start()
 
 bot.polling()
