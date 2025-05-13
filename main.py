@@ -8,7 +8,7 @@ import time
 from scanner import compare_all_exchanges
 from fpdf import FPDF
 
-API_TOKEN = '8065004819:AAGCuaB5ImkIPHqQKp4alsX4ue9GFvpqt-4'
+API_TOKEN = '8065004819:AAHsCVYP1dKWrZU8FGjSrd1UrOeBpcI5KZk'
 ADMIN_ID = 7833365313
 bot = telebot.TeleBot(API_TOKEN)
 
