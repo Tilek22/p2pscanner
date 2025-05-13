@@ -2,8 +2,7 @@
 import telebot
 import json
 from datetime import datetime, timedelta
-
-API_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'
+API_TOKEN = '8065004819:AAG3eJ1SJM3SDBqRT4480CdRyAtj3FndI14'
 bot = telebot.TeleBot(API_TOKEN)
 
 # Загрузка базы подписчиков
