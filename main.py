@@ -1,5 +1,4 @@
-
-# 📦 main.py с интеграцией scanner.py (реальные связки Binance → OKX)
+# 📦 Обновлённый main.py с кнопкой «Мой ID» и автообновлением связок
 import telebot
 from telebot import types
 import json
@@ -26,6 +25,7 @@ def save_vip():
 main_menu = types.ReplyKeyboardMarkup(resize_keyboard=True)
 main_menu.add("🔁 Связки", "👑 VIP")
 main_menu.add("💎 Подписка", "📘 Помощь")
+main_menu.add("👤 Мой ID")
 
 # /start
 @bot.message_handler(commands=['start'])
@@ -42,7 +42,7 @@ def start(message):
 @bot.message_handler(func=lambda msg: msg.text == "🔁 Связки")
 @bot.message_handler(commands=['связки'])
 def svyazki(message):
-    text = "<b>🔗 Топ 3 связки на сейчас:</b>\n\n"
+    text = "<b>🔗 Топ 3 связки (пример):</b>\n\n"
     text += "1️⃣ TON\n🔻 OKX → 1.20$\n🔺 Binance → 1.28$\n💰 Прибыль: +6.7%\n\n"
     text += "2️⃣ TRX\n🔻 Bybit → 0.267$\n🔺 OKX → 0.278$\n💰 Прибыль: +4.1%\n\n"
     text += "3️⃣ SHIB\n🔻 Bybit → 0.0000091$\n🔺 Binance → 0.0000097$\n💰 Прибыль: +6.6%\n\n💬 Поддержка: @La_Vistaa"
@@ -56,7 +56,7 @@ def subs(message):
         "💎 <b>VIP ПОДПИСКА НА P2P СКАНЕР</b>:\n\n"
         "🔹 1 день — 500 KGS\n🔹 7 дней — 2 500 KGS\n🔹 30 дней — 7 500 KGS\n\n"
         "🔄 <i>Что ты получишь:</i>\n"
-        "✅ Лучшие P2P-связки (обновляются автоматически)\n✅ Обновления каждые 60 секунд\n✅ TRC20, TON, BTC, USDT, более 10 бирж\n\n"
+        "✅ Реальные P2P-связки\n✅ Автообновление\n✅ Binance, OKX, Bybit\n\n"
         "💳 <b>Оплата на карту:</b>\nVISA: <code>4021 8300 5087 1042</code>\nНа имя: А.Т\n\n"
         "📩 После оплаты отправьте скриншот или введите /активировать\n💬 Поддержка: @La_Vistaa"
     )
@@ -75,26 +75,8 @@ def vip(message):
         bot.send_message(message.chat.id,
             "🔒 У вас нет активной подписки. Введите /подписка, чтобы оформить доступ.", parse_mode="HTML")
 
-# /активировать
-@bot.message_handler(commands=['активировать'])
-def activate(message):
-    msg = bot.send_message(message.chat.id, "🔐 Введите код активации (VIP-1, VIP-7, VIP-30):")
-    bot.register_next_step_handler(msg, process_activation)
-
-def process_activation(message):
-    code = message.text.strip().upper()
-    days = {"VIP-1": 1, "VIP-7": 7, "VIP-30": 30}
-    if code in days:
-        until = (datetime.now() + timedelta(days=days[code])).strftime("%Y-%m-%d")
-        vip_users[str(message.chat.id)] = until
-        save_vip()
-        bot.send_message(message.chat.id,
-            f"🎉 <b>Поздравляем!</b>\nВы активировали VIP на {days[code]} дней до <code>{until}</code>\n\nВведите /vip чтобы начать!",
-            parse_mode="HTML")
-    else:
-        bot.send_message(message.chat.id, "❌ Неверный код. Попробуйте снова.")
-
-# /мой_профиль
+# Кнопка "👤 Мой ID"
+@bot.message_handler(func=lambda msg: msg.text == "👤 Мой ID")
 @bot.message_handler(commands=['мой_профиль'])
 def profile(message):
     uid = str(message.chat.id)
@@ -116,16 +98,17 @@ def help_command(message):
     help_text = (
         "📘 <b>Справка по командам:</b>\n\n"
         "/start — запуск бота\n"
-        "/связки — 🔁 Топ связок\n"
-        "/vip — 👑 Реальные P2P-связки с Binance/OKX\n"
+        "/связки — 🔁 Пример связок\n"
+        "/vip — 👑 Реальные связки\n"
         "/подписка — 💎 Условия\n"
-        "/активировать — 🔐 Ввести код доступа\n"
-        "/мой_профиль — 👤 Профиль и статус\n"
-        "/помощь — 📘 Это меню"
+        "/активировать — 🔐 Ввести код\n"
+        "/мой_профиль — 👤 Ваш ID и статус\n"
+        "/помощь — 📘 Меню помощи"
     )
     bot.send_message(message.chat.id, help_text, parse_mode="HTML")
 
-# Автосообщение VIP каждый день в 10:00 и 18:00
+# Автонапоминание
+
 def daily_vip_broadcast():
     while True:
         now = datetime.now()
@@ -133,7 +116,7 @@ def daily_vip_broadcast():
             today = now.strftime("%Y-%m-%d")
             for uid, expiry in vip_users.items():
                 if expiry >= today:
-                    bot.send_message(uid, "🧠 P2P BOT | v1.2\n\n💡 Проверь /vip — реальные связки Binance → OKX")
+                    bot.send_message(uid, "🧠 P2P BOT | v1.2\n\n💡 Проверь /vip — свежие связки между биржами")
             time.sleep(60)
         time.sleep(30)
 
