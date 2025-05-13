@@ -1,10 +1,12 @@
-# 📦 Обновлённый main.py: /помощь фикс, кнопка, аватар готов
+
+# 📦 main.py с интеграцией scanner.py (реальные связки Binance → OKX)
 import telebot
 from telebot import types
 import json
 from datetime import datetime, timedelta
 import threading
 import time
+from scanner import compare_binance_okx
 
 API_TOKEN = '8065004819:AAHsCVYP1dKWrZU8FGjSrd1UrOeBpcI5KZk'
 bot = telebot.TeleBot(API_TOKEN)
@@ -54,7 +56,7 @@ def subs(message):
         "💎 <b>VIP ПОДПИСКА НА P2P СКАНЕР</b>:\n\n"
         "🔹 1 день — 500 KGS\n🔹 7 дней — 2 500 KGS\n🔹 30 дней — 7 500 KGS\n\n"
         "🔄 <i>Что ты получишь:</i>\n"
-        "✅ Лучшие P2P-связки\n✅ Обновления каждые 60 секунд\n✅ TRC20, TON, BTC, USDT, более 10 бирж\n\n"
+        "✅ Лучшие P2P-связки (обновляются автоматически)\n✅ Обновления каждые 60 секунд\n✅ TRC20, TON, BTC, USDT, более 10 бирж\n\n"
         "💳 <b>Оплата на карту:</b>\nVISA: <code>4021 8300 5087 1042</code>\nНа имя: А.Т\n\n"
         "📩 После оплаты отправьте скриншот или введите /активировать\n💬 Поддержка: @La_Vistaa"
     )
@@ -67,9 +69,8 @@ def vip(message):
     uid = str(message.chat.id)
     today = datetime.now().strftime("%Y-%m-%d")
     if uid in vip_users and vip_users[uid] >= today:
-        bot.send_message(message.chat.id,
-            "👑 <b>VIP-связки:</b>\n\nTON: OKX → 1.20$ → Binance → 1.28$ (+6.7%)\nTRX: Bybit → 0.267$ → OKX → 0.278$ (+4.1%)\n\n💬 Поддержка: @La_Vistaa",
-            parse_mode="HTML")
+        results = compare_binance_okx()
+        bot.send_message(message.chat.id, "\n".join(results))
     else:
         bot.send_message(message.chat.id,
             "🔒 У вас нет активной подписки. Введите /подписка, чтобы оформить доступ.", parse_mode="HTML")
@@ -115,16 +116,16 @@ def help_command(message):
     help_text = (
         "📘 <b>Справка по командам:</b>\n\n"
         "/start — запуск бота\n"
-        "/связки — 🔁 Топ выгодных связок\n"
-        "/vip — 👑 VIP-связки\n"
-        "/подписка — 💎 Условия и оплата\n"
+        "/связки — 🔁 Топ связок\n"
+        "/vip — 👑 Реальные P2P-связки с Binance/OKX\n"
+        "/подписка — 💎 Условия\n"
         "/активировать — 🔐 Ввести код доступа\n"
-        "/мой_профиль — 👤 Ваш статус и ID\n"
+        "/мой_профиль — 👤 Профиль и статус\n"
         "/помощь — 📘 Это меню"
     )
     bot.send_message(message.chat.id, help_text, parse_mode="HTML")
 
-# 🕒 Автосообщение VIP каждый день в 10:00 и 18:00
+# Автосообщение VIP каждый день в 10:00 и 18:00
 def daily_vip_broadcast():
     while True:
         now = datetime.now()
@@ -132,7 +133,7 @@ def daily_vip_broadcast():
             today = now.strftime("%Y-%m-%d")
             for uid, expiry in vip_users.items():
                 if expiry >= today:
-                    bot.send_message(uid, "🧠 P2P BOT | v1.2\n\n💡 Напоминание: не забудьте проверить свежие связки через /vip")
+                    bot.send_message(uid, "🧠 P2P BOT | v1.2\n\n💡 Проверь /vip — реальные связки Binance → OKX")
             time.sleep(60)
         time.sleep(30)
 
