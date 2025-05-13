@@ -38,7 +38,7 @@ def get_bybit_usdt_kgz():
         "tokenId": "USDT",
         "currencyId": "KGS",
         "payment": [],
-        "side": "1",  # SELL
+        "side": "1",
         "size": "5",
         "page": "1"
     }
@@ -57,7 +57,6 @@ def compare_all_exchanges():
     }
 
     results = []
-
     for source in prices:
         for target in prices:
             if source == target:
@@ -78,7 +77,6 @@ def compare_all_exchanges():
         return ["😕 Выгодных связок не найдено."]
 
     results.sort(key=lambda x: x["profit"], reverse=True)
-
     return [
         f"🔄 {r['pair']}\n🔻 Купить: {r['buy']} KGS\n🔺 Продать: {r['sell']} KGS\n💰 Чистая прибыль: {r['profit']:.2f}%\n"
         for r in results[:5]
