@@ -6,7 +6,7 @@ import json
 from datetime import datetime, timedelta
 import threading
 import time
-from scanner import compare_binance_okx
+from scanner import compare_all_exchanges
 
 API_TOKEN = '8065004819:AAHsCVYP1dKWrZU8FGjSrd1UrOeBpcI5KZk'
 bot = telebot.TeleBot(API_TOKEN)
@@ -69,7 +69,7 @@ def vip(message):
     uid = str(message.chat.id)
     today = datetime.now().strftime("%Y-%m-%d")
     if uid in vip_users and vip_users[uid] >= today:
-        results = compare_binance_okx()
+        results = compare_all_exchanges()
         bot.send_message(message.chat.id, "\n".join(results))
     else:
         bot.send_message(message.chat.id,
