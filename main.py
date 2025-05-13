@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import threading
 import time
 
-API_TOKEN = '8065004819:AAGCuaB5ImkIPHqQKp4alsX4ue9GFvpqt-4'
+API_TOKEN = '8065004819:AAHsCVYP1dKWrZU8FGjSrd1UrOeBpcI5KZk'
 bot = telebot.TeleBot(API_TOKEN)
 
 # Загрузка базы подписчиков
