@@ -1,9 +1,8 @@
 
 import requests
 
-# Настройки комиссий (в USDT)
-TRC20_FEE = 1.0  # Вывод между биржами
-MIN_PROFIT_THRESHOLD = 0.5  # Минимальная прибыль в %
+TRC20_FEE = 1.0
+MIN_PROFIT_THRESHOLD = 0.5
 
 def get_binance_usdt_kgz():
     url = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search"
@@ -16,10 +15,12 @@ def get_binance_usdt_kgz():
         "fiat": "KGS"
     }
     headers = {"Content-Type": "application/json"}
-    r = requests.post(url, json=payload, headers=headers)
-    data = r.json()
-    offers = data.get("data", [])
-    return [float(o["adv"]["price"]) for o in offers if o.get("adv")]
+    try:
+        r = requests.post(url, json=payload, headers=headers)
+        offers = r.json().get("data", [])
+        return [float(o["adv"]["price"]) for o in offers if o.get("adv")]
+    except:
+        return []
 
 def get_okx_usdt_kgz():
     url = "https://www.okx.com/v3/c2c/otc-ticker?quoteCurrency=KGS&baseCurrency=USDT&side=sell&paymentMethod=&userType=all"
@@ -30,20 +31,55 @@ def get_okx_usdt_kgz():
     except:
         return []
 
-def compare_binance_okx():
-    binance_prices = get_binance_usdt_kgz()
-    okx_prices = get_okx_usdt_kgz()
-    if not binance_prices or not okx_prices:
-        return ["❌ Не удалось получить данные с бирж"]
+def get_bybit_usdt_kgz():
+    url = "https://api2.bybit.com/fiat/otc/item/online"
+    payload = {
+        "userId": "",
+        "tokenId": "USDT",
+        "currencyId": "KGS",
+        "payment": [],
+        "side": "1",  # SELL
+        "size": "5",
+        "page": "1"
+    }
+    try:
+        r = requests.post(url, json=payload)
+        data = r.json()
+        return [float(d["price"]) for d in data.get("result", {}).get("items", [])]
+    except:
+        return []
+
+def compare_all_exchanges():
+    prices = {
+        "Binance": get_binance_usdt_kgz(),
+        "OKX": get_okx_usdt_kgz(),
+        "Bybit": get_bybit_usdt_kgz()
+    }
 
     results = []
-    for buy_price in binance_prices:
-        for sell_price in okx_prices:
-            profit = sell_price - buy_price - TRC20_FEE
-            percent = (profit / buy_price) * 100
-            if percent >= MIN_PROFIT_THRESHOLD:
-                results.append(f"🔄 Купить на Binance за {buy_price} KGS → продать на OKX за {sell_price} KGS\n💰 Прибыль: {percent:.2f}%\n")
+
+    for source in prices:
+        for target in prices:
+            if source == target:
+                continue
+            for buy_price in prices[source]:
+                for sell_price in prices[target]:
+                    profit = sell_price - buy_price - TRC20_FEE
+                    percent = (profit / buy_price) * 100
+                    if percent >= MIN_PROFIT_THRESHOLD:
+                        results.append({
+                            "pair": f"{source} → {target}",
+                            "buy": buy_price,
+                            "sell": sell_price,
+                            "profit": percent
+                        })
 
     if not results:
-        return ["😕 Подходящих связок с прибылью выше 0.5% не найдено"]
-    return results
+        return ["😕 Выгодных связок не найдено."]
+
+    results.sort(key=lambda x: x["profit"], reverse=True)
+
+    return [
+        f"🔄 {r['pair']}\n🔻 Купить: {r['buy']} KGS\n🔺 Продать: {r['sell']} KGS\n💰 Чистая прибыль: {r['profit']:.2f}%\n"
+        for r in results[:5]
+    ]
