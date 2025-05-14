@@ -1,7 +1,7 @@
 import requests
 
-TRC20_FEE = 1.0  # USDT комиссия (TRC20)
-MIN_PROFIT_THRESHOLD = 0.2  # %
+TRC20_FEE = 1.0
+MIN_PROFIT_THRESHOLD = 1.0  # Требуемая чистая прибыль в процентах
 
 def get_binance_usdt_kgz():
     url = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search"
@@ -65,21 +65,21 @@ def compare_all_exchanges():
                 continue
             for buy_price in prices[source]:
                 for sell_price in prices[target]:
-                    profit_usdt = (sell_price - buy_price) - TRC20_FEE
-                    percent = (profit_usdt / buy_price) * 100
-                    if percent >= MIN_PROFIT_THRESHOLD:
+                    net_profit = sell_price - buy_price - TRC20_FEE
+                    profit_percent = (net_profit / buy_price) * 100
+                    if profit_percent >= MIN_PROFIT_THRESHOLD:
                         results.append({
                             "pair": f"{source} → {target}",
                             "buy": buy_price,
                             "sell": sell_price,
-                            "profit_percent": round(percent, 2),
-                            "p100": round((profit_usdt / buy_price) * 100, 2),
-                            "p500": round((profit_usdt / buy_price) * 500, 2),
-                            "p1000": round((profit_usdt / buy_price) * 1000, 2)
+                            "profit_percent": round(profit_percent, 2),
+                            "p100": round((net_profit / buy_price) * 100, 2),
+                            "p500": round((net_profit / buy_price) * 500, 2),
+                            "p1000": round((net_profit / buy_price) * 1000, 2)
                         })
 
     if not results:
-        return ["😕 No profitable routes found."]
+        return ["😕 No profitable routes found (profit < 1%)"]
 
     results.sort(key=lambda x: x["profit_percent"], reverse=True)
     return [
