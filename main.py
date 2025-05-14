@@ -1,11 +1,8 @@
-
-# ⚙️ Финальный main.py с калькулятором сложного процента и всем функционалом
+# 📦 Финальный main.py для P2P SCANNER бота
 import telebot
 from telebot import types
 import json
 from datetime import datetime, timedelta
-import threading
-import time
 from scanner import compare_all_exchanges
 from fpdf import FPDF
 
@@ -13,6 +10,7 @@ API_TOKEN = '8065004819:AAFP4n-1CteYJkl8mG6DscN_kHqcySD8QGk'
 ADMIN_ID = 7833365313
 bot = telebot.TeleBot(API_TOKEN)
 
+# Загрузка и сохранение VIP пользователей
 try:
     with open("vip_users.json", "r") as f:
         vip_users = json.load(f)
@@ -30,7 +28,6 @@ def clean_expired_vips():
         del vip_users[uid]
     if expired:
         save_vip()
-
 clean_expired_vips()
 
 # Главное меню
@@ -39,19 +36,20 @@ main_menu.add("🔁 Связки", "👑 VIP")
 main_menu.add("📈 Калькулятор", "📘 Помощь")
 main_menu.add("💎 Подписка", "👤 Мой ID")
 
+# Команда /start
 @bot.message_handler(commands=['start'])
 def start(message):
     name = message.from_user.first_name or "друг"
-    bot.send_message(message.chat.id,
-        f"🔮 <b>P2P SCANNER BOT</b>\nДобро пожаловать, <b>{name}</b>!",
-        parse_mode="HTML", reply_markup=main_menu)
+    bot.send_message(message.chat.id, f"🔮 <b>P2P SCANNER BOT</b>\nДобро пожаловать, <b>{name}</b>!",
+                     parse_mode="HTML", reply_markup=main_menu)
 
+# Псевдо-связки
 @bot.message_handler(func=lambda msg: msg.text == "🔁 Связки")
 @bot.message_handler(commands=['связки'])
 def svyazki(message):
-    bot.send_message(message.chat.id,
-        "🧠 Это демо. Чтобы видеть актуальные связки, используйте /vip")
+    bot.send_message(message.chat.id, "🧠 Это демо. Чтобы видеть актуальные связки, используйте /vip")
 
+# Подписка
 @bot.message_handler(func=lambda msg: msg.text == "💎 Подписка")
 @bot.message_handler(commands=['подписка'])
 def subs(message):
@@ -64,6 +62,7 @@ def subs(message):
     )
     bot.send_message(message.chat.id, text, parse_mode="HTML")
 
+# Команда VIP
 @bot.message_handler(func=lambda msg: msg.text == "👑 VIP")
 @bot.message_handler(commands=['vip'])
 def vip(message):
@@ -73,9 +72,9 @@ def vip(message):
         results = compare_all_exchanges()
         bot.send_message(message.chat.id, "\n".join(results))
     else:
-        bot.send_message(message.chat.id,
-            "🔒 Нет подписки. Используйте /подписка", parse_mode="HTML")
+        bot.send_message(message.chat.id, "🔒 Нет подписки. Используйте /подписка", parse_mode="HTML")
 
+# Мой ID
 @bot.message_handler(func=lambda msg: msg.text == "👤 Мой ID")
 @bot.message_handler(commands=['мой_профиль'])
 def profile(message):
@@ -86,6 +85,7 @@ def profile(message):
     text = f"👤 <b>{name}</b>\nID: <code>{uid}</code>\nСтатус: {status}"
     bot.send_message(message.chat.id, text, parse_mode="HTML")
 
+# Калькулятор сложного процента
 @bot.message_handler(func=lambda msg: msg.text == "📈 Калькулятор")
 @bot.message_handler(commands=['калькулятор'])
 def start_calc(message):
@@ -106,9 +106,10 @@ def process_days(message, percent):
         start = 1000
         final = start * (1 + percent / 100) ** days
         bot.send_message(message.chat.id,
-            f"📈 Начальная сумма: $1000\n📉 Дневной %: {percent}%\n📆 Дней: {days}\n\n💰 Итог: <b>${final:.2f}</b>",
-            parse_mode="HTML")
+                         f"📈 Начальная сумма: $1000\n📉 Дневной %: {percent}%\n📆 Дней: {days}\n\n💰 Итог: <b>${final:.2f}</b>",
+                         parse_mode="HTML")
     except:
         bot.send_message(message.chat.id, "❌ Введите целое число дней")
 
-# (Остальной код остаётся прежним: PDF, статистика, авторассылка и т.д.)
+# Обязательно запускаем бота
+bot.polling(none_stop=True)
